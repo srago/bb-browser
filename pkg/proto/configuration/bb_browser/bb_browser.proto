@@ -52,7 +52,4 @@ message ApplicationConfiguration {
   // Optional TLS configuration for the BuildBarn browser server.
   // TLS is not enabled when left unset.
   buildbarn.configuration.tls.ServerConfiguration tls = 9;
-
-  // Optional servername for the TLS response to the client.
-  string server_name = 10;
 }

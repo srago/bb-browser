@@ -265,10 +265,8 @@ func main() {
 		subrouter)
 	go func() {
 		if configuration.Tls != nil {
-			log.Printf("Using server name %s\n", configuration.ServerName)
 			cfg := &tls.Config{
 				ClientAuth: tls.NoClientCert,
-				ServerName: configuration.ServerName,
 			}
 			if util.IsPEMFile(configuration.Tls.ServerCertificate) && util.IsPEMFile(configuration.Tls.ServerPrivateKey) {
 				ci.mu.Lock()
