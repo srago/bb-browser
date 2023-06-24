@@ -5,6 +5,7 @@ package buildbarn.configuration.bb_browser;
 import "pkg/proto/configuration/auth/auth.proto";
 import "pkg/proto/configuration/blobstore/blobstore.proto";
 import "pkg/proto/configuration/global/global.proto";
+import "pkg/proto/configuration/tls/tls.proto";
 
 option go_package = "github.com/buildbarn/bb-browser/pkg/proto/configuration/bb_browser";
 
@@ -47,4 +48,11 @@ message ApplicationConfiguration {
   // web service from the Content Addressable Storage (CAS),
   // Action Cache (AC) and Initial Size Class Cache (ISCC).
   buildbarn.configuration.auth.AuthorizerConfiguration authorizer = 8;
+
+  // Optional TLS configuration for the BuildBarn browser server.
+  // TLS is not enabled when left unset.
+  buildbarn.configuration.tls.ServerConfiguration tls = 9;
+
+  // Optional servername for the TLS response to the client.
+  string server_name = 10;
 }

@@ -1,15 +1,21 @@
 package main
 
 import (
+	"crypto"
+	"crypto/tls"
+	"crypto/x509"
 	"embed"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"html/template"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"path"
 	"strings"
+	"sync"
 	"time"
 
 	remoteexecution "github.com/bazelbuild/remote-apis/build/bazel/remote/execution/v2"
@@ -25,6 +31,7 @@ import (
 	"github.com/dustin/go-humanize"
 	"github.com/gorilla/mux"
 	"github.com/kballard/go-shellquote"
+	"github.com/spiffe/go-spiffe/v2/svid/x509svid"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -47,6 +54,12 @@ type timestampDelta struct {
 	DurationFromPrevious time.Duration
 }
 
+type certInfo struct {
+	mu         sync.Mutex
+	x509Certs  []*x509.Certificate
+	privateKey crypto.Signer
+}
+
 var (
 	//go:embed templates
 	templatesFS embed.FS
@@ -54,6 +67,8 @@ var (
 	stylesheet template.CSS
 	//go:embed favicon.png
 	favicon []byte
+
+	ci certInfo
 )
 
 func main() {
@@ -249,8 +264,80 @@ func main() {
 		bbClientdInstanceNamePatcher,
 		subrouter)
 	go func() {
-		log.Fatal(http.ListenAndServe(configuration.ListenAddress, router))
+		if configuration.Tls != nil {
+			log.Printf("Using server name %s\n", configuration.ServerName)
+			cfg := &tls.Config{
+				ClientAuth: tls.NoClientCert,
+				ServerName: configuration.ServerName,
+			}
+			if util.IsPEMFile(configuration.Tls.ServerCertificate) && util.IsPEMFile(configuration.Tls.ServerPrivateKey) {
+				ci.mu.Lock()
+				err = loadNewCerts(configuration.Tls.ServerCertificate, configuration.Tls.ServerPrivateKey)
+				ci.mu.Unlock()
+				if err != nil {
+					log.Fatal(err.Error())
+				}
+				cfg.GetCertificate = getCertificate(configuration.Tls.ServerCertificate, configuration.Tls.ServerPrivateKey)
+			} else {
+				cert, err := tls.X509KeyPair([]byte(configuration.Tls.ServerCertificate), []byte(configuration.Tls.ServerPrivateKey))
+				if err != nil {
+					log.Fatal("Invalid server certificate or private key: %v", err)
+				}
+				cfg.Certificates = []tls.Certificate{cert}
+			}
+			l, err := tls.Listen("tcp", configuration.ListenAddress, cfg)
+			if err != nil {
+				log.Fatal("can't listen: %v", err)
+			}
+			log.Fatal(http.Serve(l, router))
+		} else {
+			// Use nonTLS connections.
+			log.Fatal(http.ListenAndServe(configuration.ListenAddress, router))
+		}
 	}()
 
 	lifecycleState.MarkReadyAndWait()
+}
+
+func loadNewCerts(certFile, keyFile string) error {
+	cb, err := ioutil.ReadFile(certFile)
+	if err != nil {
+		return fmt.Errorf("can't read certs: %v", err)
+	}
+	kb, err := ioutil.ReadFile(keyFile)
+	if err != nil {
+		return fmt.Errorf("can't read key: %v", err)
+	}
+	svid, err := x509svid.Parse(cb, kb)
+	if err != nil {
+		return fmt.Errorf("can't parse certs/key: %v", err)
+	}
+	ci.x509Certs = svid.Certificates
+	ci.privateKey = svid.PrivateKey
+	return nil
+}
+
+func getCertificate(certFile, keyFile string) func(*tls.ClientHelloInfo) (*tls.Certificate, error) {
+	return func(info *tls.ClientHelloInfo) (*tls.Certificate, error) {
+		ci.mu.Lock()
+		defer ci.mu.Unlock()
+		log.Printf("ClientHelloInfo: %#v\n", info)
+		log.Printf("CI: getCert not before %v not after %v\n", ci.x509Certs[0].NotBefore, ci.x509Certs[0].NotAfter)
+		if time.Now().After(ci.x509Certs[0].NotAfter.Add(time.Minute * -15)) {
+			// Cert is about to expire.  Some external entity is responsible for rotating certs.
+			// Reload the new ones.
+			if err := loadNewCerts(certFile, keyFile); err != nil {
+				return nil, status.Errorf(codes.FailedPrecondition, "Can't reload certs: %v\n", err)
+			}
+			log.Printf("CI: Reload: getCert not before %v not after %v\n", ci.x509Certs[0].NotBefore, ci.x509Certs[0].NotAfter)
+		}
+		cert := &tls.Certificate {
+			Certificate: make([][]byte, 0, len(ci.x509Certs)),
+			PrivateKey:  ci.privateKey,
+		}
+		for _, c := range ci.x509Certs {
+			cert.Certificate = append(cert.Certificate, c.Raw)
+		}
+		return cert, nil
+	}
 }
