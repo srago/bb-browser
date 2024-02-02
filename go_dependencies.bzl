@@ -196,15 +196,15 @@ def go_dependencies():
     )
     go_repository(
         name = "com_github_buildbarn_bb_remote_execution",
-        importpath = "github.com/buildbarn/bb-remote-execution",
-        sum = "h1:dgXMsgYgc48Sxb8gcrd+C2ze8Rtn1UvaDMxrUGti50g=",
-        version = "v0.0.0-20240222085313-f5b199467dd6",
+        importpath = "github.com/srago/bb-remote-execution",
+        sum = "h1:6LhhwMKF6nsxUYWeFCc2FO5pTsRDB0XTzITxldZH/p8=",
+        version = "v0.0.0-20240202204324-07e5e0627112",
     )
     go_repository(
         name = "com_github_buildbarn_bb_storage",
-        importpath = "github.com/buildbarn/bb-storage",
-        sum = "h1:fHapKnQQLgJaMxGiBAUCPVHNfD5vV1LDfXqmyClJ6Lc=",
-        version = "v0.0.0-20240227100204-0aa40dfdbead",
+        importpath = "github.com/srago/bb-storage",
+        sum = "h1:sNlBNW9XrhIHOKtf5T41/IPuptRqHCxrsG7xa1Rf0dY=",
+        version = "v0.0.0-20240202202628-130104c84d70",
     )
     go_repository(
         name = "com_github_buildbarn_go_xdr",
@@ -741,6 +741,12 @@ def go_dependencies():
         version = "v1.0.5",
     )
     go_repository(
+        name = "com_github_spiffe_go_spiffe_v2",
+        importpath = "github.com/spiffe/go-spiffe/v2",
+        sum = "h1:4SdizuQieFyL9eNU+SPiCArH4kynzaKOOj0VvM8R7Xo=",
+        version = "v2.1.6",
+    )
+    go_repository(
         name = "com_github_stretchr_objx",
         importpath = "github.com/stretchr/objx",
         sum = "h1:1zr/of2m5FGMsad5YfcqgdqdWrIhu+EBEJRhR1U7z/c=",
@@ -763,6 +769,12 @@ def go_dependencies():
         importpath = "github.com/yuin/goldmark",
         sum = "h1:fVcFKWvrslecOb/tg+Cc05dkeYx540o0FuFt3nUVDoE=",
         version = "v1.4.13",
+    )
+    go_repository(
+        name = "com_github_zeebo_errs",
+        importpath = "github.com/zeebo/errs",
+        sum = "h1:hmiaKqgYZzcVgRL1Vkc1Mn2914BbzB0IBxs+ebeutGs=",
+        version = "v1.3.0",
     )
     go_repository(
         name = "com_google_cloud_go",
@@ -1564,6 +1576,10 @@ def go_dependencies():
         version = "v1.21.0",
     )
     go_repository(
+        #name = "io_opentelemetry_go_otel_trace",
+        #importpath = "go.opentelemetry.io/otel/trace",
+        #sum = "h1:DFVQmlVbfVeOuBRrwdtaehRrWiL1JoVs9CPIQ1Dzxpg=",
+        #version = "v1.19.0",
         name = "io_opentelemetry_go_otel_trace",
         importpath = "go.opentelemetry.io/otel/trace",
         sum = "h1:4LrmmEd8AU2rFvU1zegmvqW7+kWarxtNOPyeL6HmYY8=",
