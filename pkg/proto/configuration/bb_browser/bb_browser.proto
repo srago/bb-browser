@@ -6,7 +6,6 @@ import "pkg/proto/configuration/auth/auth.proto";
 import "pkg/proto/configuration/blobstore/blobstore.proto";
 import "pkg/proto/configuration/global/global.proto";
 import "pkg/proto/configuration/http/http.proto";
-import "pkg/proto/configuration/tls/tls.proto";
 
 option go_package = "github.com/buildbarn/bb-browser/pkg/proto/configuration/bb_browser";
 
@@ -89,8 +88,4 @@ message ApplicationConfiguration {
   // If no links to external services need to be provided, you may use
   // expression `{}` (including the backticks).
   string request_metadata_links_jmespath_expression = 11;
-
-  // Optional TLS configuration for the BuildBarn browser server.
-  // TLS is not enabled when left unset.
-  buildbarn.configuration.tls.ServerConfiguration tls = 12;
 }
