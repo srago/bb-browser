@@ -1,0 +1,12 @@
+--- MODULE.bazel	2024-12-08 14:28:23.486843200 -0500
++++ MODULE.bazel	2024-12-08 14:42:12.584217143 -0500
+@@ -59,9 +59,6 @@
+ 
+ go_deps = use_extension("@gazelle//:extensions.bzl", "go_deps")
+ go_deps.from_file(go_mod = "//:go.mod")
+-go_deps.gazelle_default_attributes(
+-    build_file_generation = "on",
+-)
+ use_repo(
+     go_deps,
+     "cc_mvdan_gofumpt",
