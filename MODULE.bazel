@@ -24,7 +24,7 @@ git_override(
 
 git_override(
     module_name = "com_github_buildbarn_bb_remote_execution",
-    commit = "612e0b2a5375b9512ba852e54663976f82aceb80",
+    commit = "87353afca6815e19dfc0ee90868c317ef192eb7a",
     remote = "https://github.com/srago/bb-remote-execution.git",
     patches = [
         "//:patches/com_github_buildbarn_bb_remote_execution/re.diff",
@@ -55,8 +55,9 @@ git_override(
 
 go_deps = use_extension("@gazelle//:extensions.bzl", "go_deps")
 go_deps.from_file(go_mod = "//:go.mod")
-go_deps.gazelle_default_attributes(
+go_deps.gazelle_override(
     build_file_generation = "on",
+    path = "github.com/cncf/xds/go",
 )
 use_repo(
     go_deps,
